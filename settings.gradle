@@ -1,5 +1,24 @@
 pluginManagement {
     repositories {
+        maven { url "https://repo.maven.apache.org/maven2/io/github/" }
+        maven {
+            url 'https://mirrors.cloud.tencent.com/gradle/'}
+//                maven {
+//                    allowInsecureProtocol = true
+//                    url 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/' }
+        maven {
+            url 'https://maven.aliyun.com/repository/gradle-plugin' }
+        maven {
+            allowInsecureProtocol = true
+            url 'http://maven.aliyun.com/nexus/content/groups/public' }
+        maven {
+            allowInsecureProtocol = true
+            url 'http://maven.aliyun.com/nexus/content/repositories/jcenter' }
+        maven {
+            url 'https://maven.aliyun.com/repository/jcenter' }
+        maven {
+            url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://jitpack.io' }
         google {
             content {
                 includeGroupByRegex("com\\.android.*")
@@ -14,6 +33,25 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        maven { url "https://repo.maven.apache.org/maven2/io/github/" }
+        maven {
+            url 'https://mirrors.cloud.tencent.com/gradle/'}
+//                maven {
+//                    allowInsecureProtocol = true
+//                    url 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/' }
+        maven {
+            url 'https://maven.aliyun.com/repository/gradle-plugin' }
+        maven {
+            allowInsecureProtocol = true
+            url 'http://maven.aliyun.com/nexus/content/groups/public' }
+        maven {
+            allowInsecureProtocol = true
+            url 'http://maven.aliyun.com/nexus/content/repositories/jcenter' }
+        maven {
+            url 'https://maven.aliyun.com/repository/jcenter' }
+        maven {
+            url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://jitpack.io' }
         google()
         mavenCentral()
     }
