@@ -1,5 +1,7 @@
 package com.dreamk.mywifitest;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
@@ -14,6 +16,16 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import android.Manifest;
+
+import com.dreamk.mywifitest.util.ToastUtil;
+import com.easysocket.EasySocket;
+import com.easysocket.config.EasySocketOptions;
+import com.easysocket.entity.OriginReadData;
+import com.easysocket.entity.SocketAddress;
+import com.easysocket.interfaces.conn.ISocketActionListener;
+import com.easysocket.interfaces.conn.SocketActionListener;
+import com.easysocket.utils.LogUtil;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -29,14 +41,18 @@ public class MainActivity extends AppCompatActivity {
 
     ListView lv1;
     Button btn_test,btn_send,btn_refresh;
-    EditText et_POS1,et_POS2,et_nameOfPoint;
+    EditText et_POS1,et_POS2,et_nameOfPoint,et_port,et_addr;
 
     private WifiManager mWifiManager;   // 调用WiFi各种API的对象
     private Timer mTimer;   // 启动定时任务的对象
-
+    boolean Connected = false,initflag1 = false;
     String name;
     String pos1;
     String pos2;
+    String ipAddress,tempStrRX;
+    int port;
+
+    SharedPreferences sp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,8 +64,17 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        sp = getSharedPreferences("config1", Context.MODE_PRIVATE);
+
         findViews();
         setListener();
+
+        //判断是否保存过
+        if(sp.getBoolean("isSaved",false)){
+            et_addr.setText(sp.getString("addr1",""));
+            et_port.setText(sp.getString("port1",""));
+        }
 
         mWifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         getLocationAccessPermission();  // 先获取位置权限
@@ -82,13 +107,60 @@ public class MainActivity extends AppCompatActivity {
         et_nameOfPoint = findViewById(R.id.et_nameOfPoint);
         et_POS1 = findViewById(R.id.et_POS1);
         et_POS2 = findViewById(R.id.et_POS2);
+        et_port = findViewById(R.id.et_port);
+        et_addr = findViewById(R.id.et_addr);
+    }
+    private void saveSP(){
+
+        SharedPreferences.Editor editor = sp.edit();
+        String string1 = et_addr.getText().toString();
+        String string2 = et_port.getText().toString();
+        if(!string1.isEmpty() && !string2.isEmpty()) {
+            editor.putString("addr1", string1);
+            editor.putString("port1", string2);
+            editor.putBoolean("isSaved", true);
+            editor.apply();
+        }
     }
 
+
+
     private void setListener(){
-        btn_test.setOnClickListener(v -> {});
+        btn_test.setOnClickListener(v -> {
+            saveSP();
+            if(Connected){
+                //断开连接时
+//                deInitEasySocket();
+                disconnect1();
+                Connected = false;
+                btn_test.setText("连接");
+                ToastUtil.show(MainActivity.this,"已断开连接");
+
+            } else {
+                ipAddress =et_addr.getText().toString();
+                port = Integer.parseInt(et_port.getText().toString()); // 获取端口号
+                if(initflag1){
+                    connect1();
+                } else {
+                    initEasySocket(ipAddress,port);
+                }
+//                Connected = true;
+                btn_test.setText("断开");
+//                ToastUtil.show(MainActivity.this,"已连接：" + ipAddress + ":" + port);
+
+            }
+        });
         btn_send.setOnClickListener(v -> {
             getTextFromUI();
             //TODO: 点完按钮将数据发送到服务端上
+            if(Connected){
+                String txText;
+                txText = "@N:" + name + ",(" + pos1 + "," + pos2 + ")\r\n";
+                sendText(txText);
+            } else {
+                ToastUtil.show(this,"请先连接！");
+            }
+
 
         });
     }
@@ -96,6 +168,135 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         mTimer.cancel();    // 取消定时任务
+    }
+
+    /**
+     * socket行为监听
+     */
+    private final ISocketActionListener socketActionListener = new SocketActionListener() {
+        /**
+         * socket连接成功
+         * @param socketAddress 地址
+         */
+        @Override
+        public void onSocketConnSuccess(SocketAddress socketAddress) {
+            LogUtil.w("端口" + socketAddress.getPort() + "---> 连接成功~~");
+            if(socketAddress.getPort() == port){
+                ToastUtil.show(MainActivity.this, socketAddress.getPort() + "端口" + "socket已连接");
+                Connected = true;
+                btn_test.setText("断开");
+            }
+
+
+        }
+
+        /**
+         * socket连接失败
+         * @param socketAddress 地址
+         * @param isNeedReconnect 是否需要重连
+         */
+        @Override
+        public void onSocketConnFail(SocketAddress socketAddress, boolean isNeedReconnect) {
+            ToastUtil.show(MainActivity.this,"连接失败！！！");
+            if(socketAddress.getPort() == port){
+                Connected = false;
+                btn_test.setText("连接");
+            }
+
+
+
+
+        }
+
+        /**
+         * socket断开连接
+         * @param socketAddress 地址
+         * @param isNeedReconnect 是否需要重连
+         */
+        @Override
+        public void onSocketDisconnect(SocketAddress socketAddress, boolean isNeedReconnect) {
+            LogUtil.d(socketAddress.getPort() + "端口" + "---> socket断开连接，是否需要重连：" + isNeedReconnect);
+
+            if(socketAddress.getPort() == port){
+                Connected = false;
+                btn_test.setText("连接");
+            }
+
+
+        }
+
+        /**
+         * socket接收的数据
+         * @param socketAddress 地址
+         * @param readData 收到的数据
+         */
+        @Override
+        public void onSocketResponse(SocketAddress socketAddress, String readData) {
+            LogUtil.d(socketAddress.getPort() + "端口" + "SocketActionListener收到数据-->" + readData);
+            tempStrRX = readData;
+
+            {
+                //TODO:接收处理
+            }
+            tempStrRX = null;
+
+
+
+        }
+
+        @Override
+        public void onSocketResponse(SocketAddress socketAddress, OriginReadData originReadData) {
+            super.onSocketResponse(socketAddress, originReadData);
+            LogUtil.d(socketAddress.getPort() + "端口" + "SocketActionListener收到数据-->" + originReadData.getBodyString());
+        }
+    };
+
+    private void initEasySocket(String ip,int portA) {
+        //socket配置
+        EasySocketOptions options = new EasySocketOptions.Builder()
+                .setSocketAddress(new SocketAddress(ip, portA)) //主机地址
+                .setConnectTimeout(100)
+                .build();
+        EasySocket.getInstance().setDebug(true);
+        EasySocket.getInstance().createConnection(options,this);
+        EasySocket.getInstance().connect();
+        // 监听socket行为
+        EasySocket.getInstance().subscribeSocketAction(socketActionListener);
+
+
+        initflag1 = true;
+
+
+
+    }
+    //TODO:断开连接功能有问题，稍后修改
+    private void disconnect1(){
+
+        EasySocket.getInstance().disconnect(ipAddress+":"+port,false);
+        EasySocket.getInstance();
+//        deInitEasySocket();
+    }
+    private void connect1(){
+        EasySocket.getInstance().connect(ipAddress+":"+port);
+    }
+
+
+    private void deInitEasySocket(){
+
+        EasySocket.getInstance().destroyConnection(ipAddress+":"+port);
+        Connected = false;
+        initflag1 = false;
+
+    }
+
+    /**
+     * 通过  EasySocket.getInstance().upMessage(str.getBytes()) 发送消息
+     * @param str 要发送的数据
+     */
+    void sendText(String str){
+        //发送数据
+        EasySocket.getInstance().upMessage(str.getBytes());
+
     }
 
     public void scanWifi() {

@@ -30,6 +30,7 @@ android {
 
 dependencies {
 
+    implementation 'com.github.jiusetian:EasySocket:2.1.1'
     implementation 'com.github.1079374315:GSLS_Tool:v1.4.6.4'
     implementation 'androidx.annotation:annotation:1.1.0'
     implementation 'com.github.eurigo:WiFiUtils:1.1.6'
