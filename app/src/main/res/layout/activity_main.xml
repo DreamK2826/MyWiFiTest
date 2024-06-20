@@ -14,6 +14,89 @@
         android:layout_height="wrap_content"
         android:text="测试"/>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="坐标1:"
+            android:textSize="18sp"/>
+        <Space
+            android:layout_width="70dp"
+            android:layout_height="25dp"/>
+        <EditText
+            android:id="@+id/et_POS1"
+            android:layout_width="145dp"
+            android:layout_height="wrap_content"
+            android:hint="在此输入坐标1：（整数）"
+            android:inputType="number"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="坐标2:"
+            android:textSize="18sp"/>
+        <Space
+            android:layout_width="70dp"
+            android:layout_height="25dp"/>
+        <EditText
+            android:id="@+id/et_POS2"
+            android:layout_width="145dp"
+            android:layout_height="wrap_content"
+            android:hint="在此输入坐标2：（整数）"
+            android:inputType="number"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="采集点名称："
+            android:textSize="18sp"/>
+        <Space
+            android:layout_width="15dp"
+            android:layout_height="20dp"/>
+        <EditText
+            android:id="@+id/et_nameOfPoint"
+            android:layout_width="145dp"
+            android:layout_height="wrap_content"
+            android:hint="在此输入名称"
+            android:inputType="text"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btn_send"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="发送数据"/>
+        <Space
+            android:layout_width="60dp"
+            android:layout_height="10dp"/>
+        <Button
+            android:id="@+id/btn_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="刷新wifi"/>
+    </LinearLayout>
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="15dp"
+        android:background="@color/divColor1"/>
     <ListView
         android:id="@+id/lv1"
         android:layout_width="match_parent"

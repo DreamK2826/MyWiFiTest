@@ -4,4 +4,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="ssidColor">#0288D1</color>
     <color name="imgButtonBG">#A7FFEB</color>
+    <color name="divColor1">#505000</color>
 </resources>
