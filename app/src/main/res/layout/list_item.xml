@@ -18,7 +18,7 @@
             <TextView
                 android:id="@+id/tv_ssid"
                 android:layout_width="wrap_content"
-                android:layout_height="26sp"
+                android:layout_height="30sp"
                 android:text="SSID"
                 android:textColor="@color/ssidColor"
                 android:textSize="24sp"

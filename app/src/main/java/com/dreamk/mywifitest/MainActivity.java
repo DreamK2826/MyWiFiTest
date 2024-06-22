@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
                         if(i < apData.size()-1){
                             sendText(apData.get(i) + "\0");
                         } else {
-                            sendText(apData.get(i) + "\0\r\n#END#\r\n");
+                            sendText(apData.get(i) + "\0\r\n#END#$");
                         }
                     }
                 } else {
