@@ -30,11 +30,30 @@
 
     </LinearLayout>
 
-    <Button
-        android:id="@+id/btn_test"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="连接"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btn_test"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="连接"/>
+        <Space
+            android:layout_width="70dp"
+            android:layout_height="25dp"/>
+        <Button
+            android:id="@+id/btn_finish"
+            android:text="退出"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="15dp"
+        android:background="@color/divColor1"/>
 
     <LinearLayout
         android:layout_width="match_parent"

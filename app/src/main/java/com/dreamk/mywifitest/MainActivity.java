@@ -33,8 +33,17 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+
+//
+//github仓库：
+//https://github.com/DreamK2826/MyWiFiTest
 //主要参考资料：https://blog.csdn.net/gwplovekimi/article/details/106015415
 //https://blog.csdn.net/gwplovekimi/article/details/106015415
+//https://github.com/jiusetian/EasySocket
+//https://www.runoob.com/w3cnote/android-tutorial-listview.html
+//
+
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSIONS_REQUEST_CODE_ACCESS_FINE_LOCATION = 1000;
@@ -51,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     String pos2;
     String ipAddress,tempStrRX;
     int port;
-
+    List<String> apData;
     SharedPreferences sp;
 
     @Override
@@ -72,8 +81,8 @@ public class MainActivity extends AppCompatActivity {
 
         //判断是否保存过
         if(sp.getBoolean("isSaved",false)){
-            et_addr.setText(sp.getString("addr1",""));
-            et_port.setText(sp.getString("port1",""));
+            et_addr.setText(sp.getString("addr1","127.0.0.1"));
+            et_port.setText(sp.getString("port1","8080"));
         }
 
         mWifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
@@ -81,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
         mTimer = new Timer();
         // 采样周期，以毫秒为单位
-        int SAMPLE_RATE = 10000;
+        int SAMPLE_RATE = 3000;
         mTimer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -91,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
         // 立即执行任务，每隔（int SAMPLE_RATE）执行一次WiFi扫描的任务
         // 扫描周期不能太快，WiFi扫描所有的AP需要一定时间
     }
+
 
     void getTextFromUI(){
         name = et_nameOfPoint.getText().toString();
@@ -124,7 +134,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     private void setListener(){
         btn_test.setOnClickListener(v -> {
             saveSP();
@@ -147,7 +156,6 @@ public class MainActivity extends AppCompatActivity {
 //                Connected = true;
                 btn_test.setText("断开");
 //                ToastUtil.show(MainActivity.this,"已连接：" + ipAddress + ":" + port);
-
             }
         });
         btn_send.setOnClickListener(v -> {
@@ -155,19 +163,40 @@ public class MainActivity extends AppCompatActivity {
             //TODO: 点完按钮将数据发送到服务端上
             if(Connected){
                 String txText;
-                txText = "@N:" + name + ",(" + pos1 + "," + pos2 + ")\r\n";
-                sendText(txText);
+                //此处为点击发送按钮后发送的字符串
+                if(!name.isEmpty() && !pos1.isEmpty() && !pos2.isEmpty()){
+                    txText = "#START#\r\n"
+                            + "\0name:" + name
+                            + "\0POS1:" + pos1
+                            + "\0POS2:" + pos2
+                            + "\0";
+                    sendText(txText);
+                    for (int i = 0; i < apData.size(); i++) {
+                        if(i < apData.size()-1){
+                            sendText(apData.get(i) + "\0");
+                        } else {
+                            sendText(apData.get(i) + "\0\r\n#END#\r\n");
+                        }
+                    }
+                } else {
+                    ToastUtil.show(this,"请先检查输入！");
+                }
+
             } else {
                 ToastUtil.show(this,"请先连接！");
             }
-
-
         });
     }
     @Override
     protected void onStop() {
         super.onStop();
         mTimer.cancel();    // 取消定时任务
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        
     }
 
     /**
@@ -186,8 +215,6 @@ public class MainActivity extends AppCompatActivity {
                 Connected = true;
                 btn_test.setText("断开");
             }
-
-
         }
 
         /**
@@ -202,10 +229,6 @@ public class MainActivity extends AppCompatActivity {
                 Connected = false;
                 btn_test.setText("连接");
             }
-
-
-
-
         }
 
         /**
@@ -236,11 +259,9 @@ public class MainActivity extends AppCompatActivity {
             tempStrRX = readData;
 
             {
-                //TODO:接收处理
+                //TODO:编写接收消息处理
             }
             tempStrRX = null;
-
-
 
         }
 
@@ -262,14 +283,9 @@ public class MainActivity extends AppCompatActivity {
         EasySocket.getInstance().connect();
         // 监听socket行为
         EasySocket.getInstance().subscribeSocketAction(socketActionListener);
-
-
         initflag1 = true;
-
-
-
     }
-    //TODO:断开连接功能有问题，稍后修改
+    //TODO:断开连接功能有问题，可能需要修改
     private void disconnect1(){
 
         EasySocket.getInstance().disconnect(ipAddress+":"+port,false);
@@ -307,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
         mWifiManager.startScan();
         //扫描的结果
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling 还没有测试此处，请留意！！！
+            // TODO: Consider calling 还没有详细测试此处，请留意！！！
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
             //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
@@ -322,6 +338,7 @@ public class MainActivity extends AppCompatActivity {
         List<ScanResult> scanResults = mWifiManager.getScanResults();
         LinkedList<ListViewData> scanResults0 = new LinkedList<>();
         List<ListViewData> list = new ArrayList<>();
+        apData = new ArrayList<>();
 
         //把扫描结果中添加到list用于排序
         for (ScanResult sr : scanResults) {
@@ -332,8 +349,8 @@ public class MainActivity extends AppCompatActivity {
 
         //把排序后的结果中添加到scanResults0用于显示
         for (ListViewData ls : list) {
-
             scanResults0.add(new ListViewData(ls.getSSID(),ls.getRSSI(),ls.getMac()));
+            apData.add("{" + ls.getSSID() + "," + ls.getRSSI() +"}");
         }
         //通过主线程显示在listView
         runOnUiThread(() -> setListview(scanResults0));
@@ -354,7 +371,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 用于listview显示
-     * @param ld 要显示的数据
+     * @param ld 要显示的数据 LinkedList<ListViewData>
      */
     private void setListview(LinkedList<ListViewData> ld){
         MyListviewAdapter myListviewAdapter = new MyListviewAdapter(ld,MainActivity.this);
