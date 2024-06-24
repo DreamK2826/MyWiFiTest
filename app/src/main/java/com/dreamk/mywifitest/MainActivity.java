@@ -17,6 +17,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import android.Manifest;
 
+import com.dreamk.mywifitest.util.TimeUtil;
 import com.dreamk.mywifitest.util.ToastUtil;
 import com.easysocket.EasySocket;
 import com.easysocket.config.EasySocketOptions;
@@ -90,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
         mTimer = new Timer();
         // 采样周期，以毫秒为单位
-        int SAMPLE_RATE = 3000;
+        int SAMPLE_RATE = 5000;
         mTimer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -169,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
                             + "\0name:" + name
                             + "\0POS1:" + pos1
                             + "\0POS2:" + pos2
+                            + "\0TIME:" + (TimeUtil.getCuDateTime("HH:mm:ss"))
                             + "\0";
                     sendText(txText);
                     for (int i = 0; i < apData.size(); i++) {
